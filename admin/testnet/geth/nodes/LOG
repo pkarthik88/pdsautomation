@@ -1,0 +1,35 @@
+=============== Jan 7, 2017 (IST) ===============
+12:49:06.806559 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+12:49:06.806773 db@open opening
+12:49:06.807321 version@stat F·[] S·0B[] Sc·[]
+12:49:06.855555 db@janitor F·2 G·0
+12:49:06.855598 db@open done T·48.81649ms
+13:12:18.879458 memdb@flush N·42782 S·3MiB
+13:12:18.983190 memdb@flush created L0@3 N·42782 S·1MiB "n:\x00..ing,v11381":"version,v1"
+13:12:18.983255 version@stat F·[1] S·1MiB[1MiB] Sc·[0.25]
+13:12:19.050068 memdb@flush committed F·1 T·170.563663ms
+13:12:19.050938 journal@remove removed @1
+13:39:30.497967 memdb@flush N·43545 S·3MiB
+13:39:30.613561 memdb@flush created L0@5 N·43545 S·968KiB "n:\x00..ing,v52043":"n:\xff..ing,v86111"
+13:39:30.613613 version@stat F·[2] S·2MiB[2MiB] Sc·[0.50]
+13:39:30.664166 memdb@flush committed F·1 T·166.162469ms
+13:39:30.665119 journal@remove removed @2
+13:39:34.735957 table@compaction L0·2 -> L1·0 S·2MiB Q·86363
+13:39:34.856524 table@build created L1@6 N·19041 S·1MiB "n:\x00..ing,v11381":"version,v1"
+13:39:34.856592 version@stat F·[0 1] S·1MiB[0B 1MiB] Sc·[0.00 0.01]
+13:39:34.906665 table@compaction committed F-1 S-869KiB Ke·0 D·67286 T·170.665992ms
+13:39:34.906905 table@remove removed @5
+13:39:34.907138 table@remove removed @3
+14:08:32.352415 memdb@flush N·43697 S·3MiB
+14:08:32.446377 memdb@flush created L0@8 N·43697 S·928KiB "n:\x00..ing,v126210":"n:\xff..ing,v116590"
+14:08:32.446436 version@stat F·[1 1] S·2MiB[928KiB 1MiB] Sc·[0.25 0.01]
+14:08:32.504875 memdb@flush committed F·1 T·152.417625ms
+14:08:32.505716 journal@remove removed @4
+14:08:39.408055 table@compaction L0·1 -> L1·1 S·2MiB Q·130128
+14:08:39.529790 table@build created L1@9 N·22551 S·1MiB "n:\x00..ing,v11381":"version,v1"
+14:08:39.529855 version@stat F·[0 1] S·1MiB[0B 1MiB] Sc·[0.00 0.01]
+14:08:39.589540 table@compaction committed F-1 S-690KiB Ke·0 D·40187 T·181.43076ms
+14:08:39.589776 table@remove removed @8
+14:08:39.590041 table@remove removed @6
+14:21:24.467796 db@close closing
+14:21:24.467985 db@close done T·190.284µs
