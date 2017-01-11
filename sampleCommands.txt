@@ -1,0 +1,63 @@
+Terminal1 (Center)
+---------------------
+geth --testnet --datadir "./Center" --networkid 111111 account new
+{7c395265121ed6e9ff6dd9c852d47da3c32aee6e}
+geth --testnet --datadir "./Center" --networkid 111111 --mine --minerthreads 1 --unlock 0 console
+loadScript("./PDSAutomation.js")
+contract address:  0xc275585d67b74f645f73c0144f0ec5780c4bc5ba  --- put this address in initchaincode.js and registerCitizens.js
+
+Terminal2 (Center)
+-----------------------
+sh createCitizenAccounts.sh ./CitizenDatabase/CitizenDB.xls 111111
+
+Terminal1 (Center)
+------------------------
+Test: pdsautomation.citizendb(pdsautomation.citizenIndex(0))
+pdsautomation.monthlySubsidyAlloc({from: eth.accounts[0], gas: 100000});
+
+Terminal3 (State)
+----------------------
+geth --testnet --datadir "./State" --networkid 111111 account new
+{ad0a571b1154d2149da7efb0c55b48a30592a33f}
+
+Terminal1 (Center)
+------------------------
+pdsautomation.registerStateOfficial(0xad0a571b1154d2149da7efb0c55b48a30592a33f, "123456789012", 10101, {from: eth.accounts[0], gas: 100000})
+pdsautomation.statedb(pdsautomation.stateIndex(0))
+
+Terminal3 (State)
+----------------------
+geth --testnet --datadir "./State" --networkid 111111 --port 30302 --mine --minerthreads 1 --unlock 0 console
+loadScript("./initchaincode.js")
+admin.addPeer("enode://98c4fe4d04122273cd0262cd04b1530a2c9e0a8e6af86a113306cf08cb4f257be83c54e30e8c7f948c49dd60df62536cba75f75b111213f9fbc4f9810b1ba3bc@[::]:30303")
+Check: pdsautomation.statedb(0xad0a571b1154d2149da7efb0c55b48a30592a33f)
+
+Terminal4 (Dealer)
+----------------------
+geth --testnet --datadir "./Dealer" --networkid 111111 account new
+{2de12b8d23a8d211f3df35510120f70a2c736c9b}
+geth --testnet --datadir "./Dealer" --networkid 111111 --port 30301 --mine --minerthreads 1 --unlock 0 console
+admin.addPeer("enode://98c4fe4d04122273cd0262cd04b1530a2c9e0a8e6af86a113306cf08cb4f257be83c54e30e8c7f948c49dd60df62536cba75f75b111213f9fbc4f9810b1ba3bc@[::]:30303")
+admin.addPeer("enode://c207c924516a4cabd82f2940ea57bb5b9c3d54e498f42270243ee4198cbb239f3bc87e3aa287c34407ede4582257008aa31a02ca6815b39598efffd899994696@[::]:30302")
+loadScript("./initchaincode.js")
+
+Terminal3 (State)
+----------------------
+pdsautomation.registerDealer(0, 0x2de12b8d23a8d211f3df35510120f70a2c736c9b, "123456789012", 10101, {from: eth.accounts[0], gas: 100000})
+pdsautomation.dealerdb(0x2de12b8d23a8d211f3df35510120f70a2c736c9b)
+
+Terminal4 (Dealer)
+----------------------
+pdsautomation.payDealer(0, 10, 0, 10101,{from: eth.accounts[0], gas: 100000})
+Check: pdsautomation.citizendb(pdsautomation.citizenIndex(0))
+Check: pdsautomation.dealerdb(0x2de12b8d23a8d211f3df35510120f70a2c736c9b)
+pdsautomation.payState(10, 0, 10101,{from: eth.accounts[0], gas: 100000})
+Check: pdsautomation.dealerdb(0x2de12b8d23a8d211f3df35510120f70a2c736c9b)
+Check: pdsautomation.statedb(0xad0a571b1154d2149da7efb0c55b48a30592a33f)
+
+Terminal3 (State)
+---------------------
+pdsautomation.payCenter(100, 0, 10101, {from: eth.accounts[0], gas: 100000})
+Check: pdsautomation.statedb(0xad0a571b1154d2149da7efb0c55b48a30592a33f)
+Check: pdsautomation.final_balance()
+
