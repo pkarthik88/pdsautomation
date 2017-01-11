@@ -1,0 +1,2 @@
+var _greeting = 'hello' ; 
+var greeter = eth.contract([{"constant":false,"inputs":[],"name":"kill","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"greet","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"inputs":[{"name":"_greeting","type":"string"}],"payable":false,"type":"constructor"}]).at(0xf74d93048579c1982b907591a29e66720875b59a)

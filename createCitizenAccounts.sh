@@ -9,6 +9,6 @@ do
   accountid=$(echo "$accountid" | sed -e "s/^$prefix//" -e "s/$suffix$//");
   userdetails=$(echo $accountid $aadharid);
   echo $userdetails >> userAccountInfo.txt;
-  sh registerCitizens.sh $accountid $aadharid $bioinfo $income;
+  sh registerCitizens.sh $accountid $bioinfo $income;
   rm temp.txt;
 done

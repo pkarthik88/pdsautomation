@@ -1,18 +1,20 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.7;
 
 contract PDSAutomation{
 
       /*=======================================================================
         CONTRACT VARIABLES
         ========================================================================*/
-      address center_admin; // address of the contract deployer
-      uint16 public initial_balance; // gets initialized at the beginning of each month
-      uint16 public final_balance;  //subsidy procured from state officials each month
-      uint16 public subsidy_budget; // one-time initialization
-      uint16  public citizencount; // gets updated each time a new citizen is registered to the system
+      address public center_admin;
+      uint16 public initial_balance;
+      uint16 public final_balance;
+      uint16 public subsidy_budget;
+      uint16  public citizencount;
       uint16 public stateofficialcount;
       uint16 public dealercount;
       Citizen public curcitizen;
+      StateOfficial public curstateofficial;
+      Dealer public curdealer;
       uint16 public rate;
 
       struct Citizen
@@ -29,42 +31,55 @@ contract PDSAutomation{
           uint16 outstandingGoods;
           uint16 bioInfo;
           address stateOfficial;
-          bool dealerPermission;
+          uint8 dealerPermission;
       }
 
       struct StateOfficial
       {
           uint16 subsidyCollected;
           uint16 bioInfo;
-          bool statePermission;
+          uint8 statePermission;
       }
 
       mapping (uint16 => address) public citizenIndex;
-      mapping (address => Citizen) public  citizendb;
-      mapping (address => Dealer)  public dealerdb;
-      mapping (address => StateOfficial)  public statedb;
+      mapping (uint16 => address) public stateIndex;
+      mapping (uint16 => address) public dealerIndex;
+      mapping (address => Citizen) public citizendb;
+      mapping (address => Dealer) public dealerdb;
+      mapping (address => StateOfficial) public statedb;
 
-      event printCustomer(address p1, bool p2, uint16 p3);
+      event printCustomer(address p1, bool p2, uint16 p3, uint16 p4);
+      event printDealer(address p1, uint16 subsidyCollected, uint16 remainingGoods, uint16 outstandingGoods, uint16 bioInfo);
       /*=======================================================================
         FUNCTION: CONSTRUCTOR TO INITALIZE CONTRACT
         ========================================================================*/
-      function PDSAutomation(uint16 _subsidy_budget) {
+      function PDSAutomation(uint16 _subsidy_budget, uint16 _rate) public {
 
         center_admin = msg.sender;
         citizencount = 0;
         stateofficialcount = 0;
         dealercount = 0;
         subsidy_budget = _subsidy_budget;
+        rate = _rate;
       }
       /*=======================================================================
-        FUNCTION: PRINT CUSTOMER STATUS
+        FUNCTION: PRINT CUSTOMER, DEALER, STATE, CENTER STATUS
         ========================================================================*/
-      function printDebug() {
+      function printCustomerDetails() public returns(address, bool, uint16, uint16){
 
-            for (uint16 i=0; i<citizencount; i++)
-            {
+            //for (uint16 i=0; i<citizencount; i++)
+            //{
+                uint16 i=0;
                 curcitizen = citizendb[citizenIndex[i]];
-                printCustomer(citizenIndex[i], curcitizen.bpl, curcitizen.subsidyBalance);
+                return (citizenIndex[i], curcitizen.bpl, curcitizen.bioInfo, curcitizen.subsidyBalance);
+            //}
+      }
+      function printDealerDetails() {
+
+            for (uint16 i=0; i<dealercount; i++)
+            {
+                curdealer = dealerdb[dealerIndex[i]];
+                printDealer(dealerIndex[i], curdealer.subsidyCollected, curdealer.remainingGoods, curdealer.outstandingGoods, curdealer.bioInfo);
             }
       }
 
@@ -82,19 +97,16 @@ contract PDSAutomation{
       /*=======================================================================
         FUNCTION: TO REGISTER A CITIZEN
         ========================================================================*/
-      function registerCitizen(address _accountAddress, string _aadharID, uint16 _bioInfo, uint16 _income) payable returns (string){
-            //Creating the citizendb entry
+      function registerCitizen(address _accountAddress, uint16 _bioInfo, uint32 _income) payable returns (string){
             if (msg.sender != center_admin)
             {
               throw;
             }
             citizendb[_accountAddress].bioInfo = _bioInfo;
-            if (_income <= 10000000)
+            if (_income <= 100000)
               citizendb[_accountAddress].bpl = true;
             else
               citizendb[_accountAddress].bpl = false;
-
-            //Updating the citizen support structures
 
             citizenIndex[citizencount] = _accountAddress;
             citizencount++;
@@ -104,28 +116,31 @@ contract PDSAutomation{
         FUNCTION: TO REGISTER A STATE OFFICIAL
         ========================================================================*/
       function registerStateOfficial(address _accountAddress, string _aadharID, uint16 _bioInfo) payable returns (string){
-            //Creating the statedb entry
             if (msg.sender != center_admin)
             {
               throw;
             }
             statedb[_accountAddress].bioInfo = _bioInfo;
-            statedb[_accountAddress].statePermission = true;
+            statedb[_accountAddress].statePermission = 1;
+
+            stateIndex[stateofficialcount] = _accountAddress;
             stateofficialcount++;
             return "registerStateOfficial";
       }
       /*=======================================================================
         FUNCTION: TO REGISTER A DEALER
         ========================================================================*/
-      function registerDealer(address _accountAddress, string _aadharID, uint16 _bioInfo) payable returns (string){
-            //Creating the dealerdb entry
-            if (statedb[msg.sender].statePermission != true)
+      function registerDealer(uint16 _callerIndex, address _accountAddress, string _aadharID, uint16 _bioInfo) payable returns (string){
+
+            if (statedb[stateIndex[_callerIndex]].statePermission != 1 || statedb[stateIndex[_callerIndex]].bioInfo != _bioInfo)
             {
               throw;
             }
             dealerdb[_accountAddress].bioInfo = _bioInfo;
-            dealerdb[_accountAddress].dealerPermission = true;
-            dealerdb[_accountAddress].stateOfficial = msg.sender;
+            dealerdb[_accountAddress].dealerPermission = 1;
+            dealerdb[_accountAddress].stateOfficial = stateIndex[_callerIndex];
+
+            dealerIndex[dealercount] = _accountAddress;
             dealercount++;
             return "registerDealer";
       }
@@ -138,53 +153,62 @@ contract PDSAutomation{
             throw;
           if (citizendb[_citizenID].bpl)
           {
-            citizendb[_citizenID].subsidyBalance = 50000;
-            initial_balance -= 50000;
+            citizendb[_citizenID].subsidyBalance = 500;
+            initial_balance -= 500;
           }
           else
           {
-            citizendb[_citizenID].subsidyBalance = 25000;
-            initial_balance -= 25000;
+            citizendb[_citizenID].subsidyBalance = 250;
+            initial_balance -= 250;
           }
           return "allocateSubsidy";
       }
       /*=======================================================================
         FUNCTION: TO PAY THE DEALER FROM <CITIZEN>s ACCOUNT
         ========================================================================*/
-      function payDealer(uint16 _amount, address _citizenAddress, uint16 _bioInfo) returns (string){
+      function payDealer(uint16 _callerIndex, uint16 _amount, uint16 _citizenIndex, uint16 _bioInfo) returns (string){
 
-            if (dealerdb[msg.sender].dealerPermission != true || citizendb[_citizenAddress].bioInfo != _bioInfo)
+            if (dealerdb[dealerIndex[_callerIndex]].dealerPermission != 1 || citizendb[citizenIndex[_citizenIndex]].bioInfo != _bioInfo)
             {
               throw;
             }
-            dealerdb[msg.sender].subsidyCollected = dealerdb[msg.sender].subsidyCollected + _amount * rate;
-            citizendb[_citizenAddress].subsidyBalance = citizendb[_citizenAddress].subsidyBalance - _amount * rate;
+            if (citizendb[citizenIndex[_citizenIndex]].subsidyBalance < _amount * rate)
+                throw;
+            if (dealerdb[dealerIndex[_callerIndex]].remainingGoods < _amount)
+                throw;
+            dealerdb[dealerIndex[_callerIndex]].subsidyCollected = dealerdb[dealerIndex[_callerIndex]].subsidyCollected + _amount * rate;
+            dealerdb[dealerIndex[_callerIndex]].remainingGoods = dealerdb[dealerIndex[_callerIndex]].remainingGoods - _amount;
+            citizendb[citizenIndex[_citizenIndex]].subsidyBalance = citizendb[citizenIndex[_citizenIndex]].subsidyBalance - _amount * rate;
             return "payDealer";
       }
       /*=======================================================================
         FUNCTION: TO PAY THE STATE FROM <DEALER>s ACCOUNT
         ========================================================================*/
-      function payState(uint16 _amount, address _dealerAddress, uint16 _bioInfo) returns (string){
+      function payState(uint16 _amount, uint16 _callerIndex, uint16 _bioInfo) returns (string){
 
-            if (dealerdb[msg.sender].dealerPermission != true || dealerdb[_dealerAddress].bioInfo != _bioInfo)
+            if (dealerdb[dealerIndex[_callerIndex]].dealerPermission != 1 || dealerdb[dealerIndex[_callerIndex]].bioInfo != _bioInfo)
             {
               throw;
             }
-            statedb[dealerdb[msg.sender].stateOfficial].subsidyCollected = statedb[dealerdb[msg.sender].stateOfficial].subsidyCollected + _amount * rate;
-            dealerdb[msg.sender].subsidyCollected = dealerdb[msg.sender].subsidyCollected - _amount * rate;
+            if (dealerdb[dealerIndex[_callerIndex]].subsidyCollected < _amount * rate)
+                throw;
+            statedb[dealerdb[dealerIndex[_callerIndex]].stateOfficial].subsidyCollected = statedb[dealerdb[dealerIndex[_callerIndex]].stateOfficial].subsidyCollected + _amount * rate;
+            dealerdb[dealerIndex[_callerIndex]].subsidyCollected = dealerdb[dealerIndex[_callerIndex]].subsidyCollected - _amount * rate;
             return "payState";
       }
       /*=======================================================================
-        FUNCTION: TO PAY THE STATE FROM <DEALER>s ACCOUNT
+        FUNCTION: TO PAY THE CENTER FROM <STATE>s ACCOUNT
         ========================================================================*/
-      function payCenter(uint16 _amount, address _stateAddress, uint16 _bioInfo) returns (string){
+      function payCenter(uint16 _amount, uint16 _stateIndex, uint16 _bioInfo) returns (string){
 
-            if (statedb[msg.sender].statePermission != true || statedb[_stateAddress].bioInfo != _bioInfo)
+            if (statedb[stateIndex[_stateIndex]].statePermission != 1 || statedb[stateIndex[_stateIndex]].bioInfo != _bioInfo)
             {
               throw;
             }
-            statedb[_stateAddress].subsidyCollected = statedb[_stateAddress].subsidyCollected - _amount;
+            if (statedb[stateIndex[_stateIndex]].subsidyCollected < _amount)
+                throw;
+            statedb[stateIndex[_stateIndex]].subsidyCollected = statedb[stateIndex[_stateIndex]].subsidyCollected - _amount;
             final_balance = final_balance + _amount;
-            return "payState";
+            return "payCenter";
       }
 }
